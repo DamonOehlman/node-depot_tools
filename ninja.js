@@ -12,20 +12,26 @@ var extend = require('cog/extend');
 **/
 module.exports = function(targetPath) {
   return function(args, callback) {
-    var proc = spawn(toolPath, args, {
-      cwd: targetPath
-    });
+    function invoke(cb) {
+      var proc = spawn(toolPath, args, {
+        cwd: targetPath
+      });
 
-    out('!{grey}running: ninja ' + args.join(' '));
+      out('!{grey}running: ninja ' + args.join(' '));
 
-    proc.stdout.pipe(process.stdout);
-    proc.stderr.pipe(process.stderr);
+      proc.stdout.pipe(process.stdout);
+      proc.stderr.pipe(process.stderr);
 
-    proc.once('close', function(code) {
-      var err = code !== 0 && new Error('ninja ' + args.join(' ') + ' failed'); 
+      proc.once('close', function(code) {
+        var err = code !== 0 && new Error('ninja ' + args.join(' ') + ' failed'); 
 
-      // TODO: report the stack trace
-      callback(err);
-    });
+        // TODO: report the stack trace
+        if (cb) {
+          cb(err);
+        }
+      });
+    }
+
+    return typeof callback == 'function' ? invoke(callback) : invoke;
   };
 };

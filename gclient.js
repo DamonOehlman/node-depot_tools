@@ -12,24 +12,30 @@ var extend = require('cog/extend');
 **/
 module.exports = function(targetPath) {
   return function(args, callback) {
-    var proc = spawn(toolPath, args, {
-      cwd: targetPath,
-      env: extend({}, process.env, {
-        PATH: process.env.PATH + ':' +  path.resolve(__dirname, 'tools'),
-        GYP_GENERATORS: 'ninja'
-      })
-    });
+    function invoke(cb) {
+      var proc = spawn(toolPath, args, {
+        cwd: targetPath,
+        env: extend({}, process.env, {
+          PATH: process.env.PATH + ':' +  path.resolve(__dirname, 'tools'),
+          GYP_GENERATORS: 'ninja'
+        })
+      });
 
-    out('!{grey}running: gclient ' + args.join(' '));
+      out('!{grey}running: gclient ' + args.join(' '));
 
-    proc.stdout.pipe(process.stdout);
-    proc.stderr.pipe(process.stderr);
+      proc.stdout.pipe(process.stdout);
+      proc.stderr.pipe(process.stderr);
 
-    proc.once('close', function(code) {
-      var err = code !== 0 && new Error('gclient ' + args.join(' ') + ' failed'); 
+      proc.once('close', function(code) {
+        var err = code !== 0 && new Error('gclient ' + args.join(' ') + ' failed'); 
 
-      // TODO: report the stack trace
-      callback(err);
-    });
+        // TODO: report the stack trace
+        if (cb) {
+          cb(err);
+        }
+      });
+    }
+
+    return typeof callback == 'function' ? invoke(callback) : invoke;
   };
 };
