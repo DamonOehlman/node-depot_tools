@@ -30,7 +30,7 @@ var out = require('out');
   ## Reference
 **/
 
-module.exports = function(tool, customEnv) {
+module.exports = function(tool, customEnv, logger) {
   var toolPath = path.resolve(__dirname, 'tools', isWin32 ? tool + '.bat' : tool);
 
   return function(workingDir, args, callback) {
@@ -38,6 +38,7 @@ module.exports = function(tool, customEnv) {
       function invoke(callback) {
         var proc = spawn(toolPath, args, {
           cwd: workingDir,
+          stdio: typeof logger == 'function' ? null : 'inherit',
           env: extend({}, process.env, customEnv, {
             PATH: process.env.PATH + ':' +  path.resolve(__dirname, 'tools')
           })
@@ -45,8 +46,9 @@ module.exports = function(tool, customEnv) {
 
         out('!{grey}running: {0} {1}', tool, args.join(' '));
 
-        proc.stdout.pipe(process.stdout);
-        proc.stderr.pipe(process.stderr);
+        if (typeof logger == 'function') {
+          logger(proc);
+        }
 
         proc.once('close', function(code) {
           var err = code !== 0 && new Error('gclient ' + args.join(' ') + ' failed'); 
@@ -56,6 +58,8 @@ module.exports = function(tool, customEnv) {
             callback(err);
           }
         });
+
+        return proc;
       }
 
       return typeof callback == 'function' ? invoke(callback) : invoke;
