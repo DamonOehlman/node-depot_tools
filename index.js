@@ -2,6 +2,9 @@
 
 var isWin32 = process.platform == 'win32';
 var path = require('path');
+var spawn = require('child_process').spawn;
+var extend = require('cog/extend');
+var out = require('out');
 
 /**
   # node-depot_tools
@@ -27,8 +30,37 @@ var path = require('path');
   ## Reference
 **/
 
-exports.toolPath = function(name) {
-  return path.resolve(__dirname, 'tools', isWin32 ? name + '.bat' : name);
-};
+module.exports = function(tool, customEnv) {
+  var toolPath = path.resolve(__dirname, 'tools', isWin32 ? tool + '.bat' : tool);
 
-exports.gclient = require('./gclient');
+  return function(workingDir, args, callback) {
+    function initArgs(args, callback) {
+      function invoke(callback) {
+        var proc = spawn(toolPath, args, {
+          cwd: workingDir,
+          env: extend({}, process.env, customEnv, {
+            PATH: process.env.PATH + ':' +  path.resolve(__dirname, 'tools')
+          })
+        });
+
+        out('!{grey}running: {0} {1}', tool, args.join(' '));
+
+        proc.stdout.pipe(process.stdout);
+        proc.stderr.pipe(process.stderr);
+
+        proc.once('close', function(code) {
+          var err = code !== 0 && new Error('gclient ' + args.join(' ') + ' failed'); 
+
+          // TODO: report the stack trace
+          if (callback) {
+            callback(err);
+          }
+        });
+      }
+
+      return typeof callback == 'function' ? invoke(callback) : invoke;
+    }
+
+    return Array.isArray(args) ? initArgs(args, callback) : initArgs;
+  }
+};
