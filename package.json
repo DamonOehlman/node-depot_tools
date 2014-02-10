@@ -1,0 +1,32 @@
+{
+  "name": "depot_tools",
+  "version": "0.0.0",
+  "description": "Helper module for downloading and working with google's depot_tools",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "gendocs": "gendocs > README.md",
+    "install": "node install.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DamonOehlman/node-depot_tools.git"
+  },
+  "keywords": [
+    "depot_tools",
+    "build"
+  ],
+  "author": "Damon Oehlman <damon.oehlman@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DamonOehlman/node-depot_tools/issues"
+  },
+  "homepage": "https://github.com/DamonOehlman/node-depot_tools",
+  "dependencies": {
+    "tar": "~0.1.19",
+    "mkdirp": "~0.3.5",
+    "rimraf": "~2.2.6",
+    "out": "~0.5.4",
+    "cog": "~0.5.1"
+  }
+}
