@@ -1,6 +1,6 @@
 {
   "name": "depot_tools",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Helper module for downloading and working with google's depot_tools",
   "main": "index.js",
   "scripts": {
